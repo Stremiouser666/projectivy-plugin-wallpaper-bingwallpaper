@@ -1,32 +1,54 @@
 package tv.projectivy.plugin.wallpaperprovider.bingwallpaper
 
-import android.content.pm.PackageManager
 import android.os.Bundle
+import android.util.Patterns
+import android.widget.Button
+import android.widget.EditText
 import android.widget.Toast
-import androidx.fragment.app.FragmentActivity
-import androidx.leanback.app.GuidedStepSupportFragment
+import androidx.appcompat.app.AppCompatActivity
 
-class SettingsActivity : FragmentActivity() {
+class SettingsActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        setContentView(R.layout.activity_settings)
 
-        if (!packageManager.isApplicationInstalled("com.spocky.projengmenu")) {
-            Toast.makeText(this, R.string.projectivy_not_installed, Toast.LENGTH_LONG).show()
-        }
+        PreferencesManager.init(this)
 
-        val fragment: GuidedStepSupportFragment = SettingsFragment()
-        if (savedInstanceState == null) {
-            GuidedStepSupportFragment.addAsRoot(this, fragment, android.R.id.content)
+        val urlInput = findViewById<EditText>(R.id.m3u8_url_input)
+        val saveButton = findViewById<Button>(R.id.save_button)
+
+        // Load existing value
+        urlInput.setText(PreferencesManager.wallpaperSourceUrl ?: "")
+
+        saveButton.setOnClickListener {
+            val url = urlInput.text.toString().trim()
+
+            if (!isValidM3U8Url(url)) {
+                Toast.makeText(
+                    this,
+                    "Please enter a valid M3U8 (.m3u8) URL",
+                    Toast.LENGTH_LONG
+                ).show()
+                return@setOnClickListener
+            }
+
+            PreferencesManager.wallpaperSourceUrl = url
+
+            Toast.makeText(
+                this,
+                "M3U8 wallpaper source saved",
+                Toast.LENGTH_SHORT
+            ).show()
+
+            finish()
         }
     }
 
-    fun PackageManager.isApplicationInstalled(packageName: String): Boolean {
-        return try {
-            getApplicationInfo(packageName, 0)
-            true
-        } catch (_: PackageManager.NameNotFoundException) {
-            false
-        }
+    private fun isValidM3U8Url(url: String): Boolean {
+        if (url.isBlank()) return false
+        if (!Patterns.WEB_URL.matcher(url).matches()) return false
+        return url.endsWith(".m3u8", ignoreCase = true)
     }
 }
+
