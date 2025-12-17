@@ -1,0 +1,8 @@
+<resources>
+    <style name="Theme.Leanback" parent="Theme.MaterialComponents.DayNight.NoActionBar">
+        <!-- Replace primary and accent colors with placeholders -->
+        <item name="colorPrimary">#6200EE</item>
+        <item name="colorPrimaryVariant">#3700B3</item>
+        <item name="colorAccent">#03DAC5</item>
+    </style>
+</resources>
