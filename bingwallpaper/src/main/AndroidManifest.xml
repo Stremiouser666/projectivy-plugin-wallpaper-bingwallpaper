@@ -1,86 +1,21 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools"
-    tools:ignore="MissingLeanbackLauncher">
-
-    <!-- Required for loading M3U8 / streaming video -->
-    <uses-permission android:name="android.permission.INTERNET" />
-
-    <uses-feature
-        android:name="android.hardware.touchscreen"
-        android:required="false" />
-
-    <uses-feature
-        android:name="android.software.leanback"
-        android:required="true" />
-
-    <queries>
-        <package android:name="com.spocky.projengmenu" />
-    </queries>
+    package="tv.projectivy.plugin.wallpaperprovider.bingwallpaper">
 
     <application
-        android:theme="@style/Theme.Leanback"
+        android:name=".YourApplicationClassIfAny"
         android:allowBackup="true"
-        android:label="@string/plugin_name"
-        android:supportsRtl="true"
         android:icon="@mipmap/ic_launcher"
-        android:banner="@mipmap/ic_banner"
-        android:theme="@style/Theme.ProjectivyWallpaperProvider">
+        android:label="@string/app_name"
+        android:theme="@style/Theme.Leanback">
 
-        <activity
-            android:name=".SettingsActivity"
-            android:exported="true">
+        <!-- Example activity, add yours if needed -->
+        <activity android:name=".MainActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
-                <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.LAUNCHER" />
-                <category android:name="android.intent.category.LEANBACK_LAUNCHER" />
             </intent-filter>
         </activity>
-
-        <service
-            android:name=".WallpaperProviderService"
-            android:exported="true"
-            android:label="@string/plugin_name"
-            android:icon="@mipmap/ic_launcher"
-            android:banner="@mipmap/ic_banner"
-            tools:ignore="ExportedService">
-
-            <!-- Mandatory for Projectivy to detect the plugin -->
-            <intent-filter>
-                <action android:name="tv.projectivy.plugin.WALLPAPER_PROVIDER" />
-            </intent-filter>
-
-            <!-- Projectivy API version -->
-            <meta-data
-                android:name="apiVersion"
-                android:value="1" />
-
-            <!-- Plugin UUID (must be unique) -->
-            <meta-data
-                android:name="uuid"
-                android:value="@string/plugin_uuid" />
-
-            <!-- Plugin name -->
-            <meta-data
-                android:name="name"
-                android:value="@string/plugin_short_name" />
-
-            <!-- Settings activity -->
-            <meta-data
-                android:name="settingsActivity"
-                android:value=".SettingsActivity" />
-
-            <!-- 🔥 IMPORTANT: Disable caching for M3U8 / live streams -->
-            <meta-data
-                android:name="itemsCacheDurationMillis"
-                android:value="0" />
-
-            <!-- Receive time_elapsed update events -->
-            <meta-data
-                android:name="updateMode"
-                android:value="1" />
-        </service>
 
     </application>
 
