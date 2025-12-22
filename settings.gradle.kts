@@ -5,6 +5,7 @@ pluginManagement {
         gradlePluginPortal()
     }
 }
+
 dependencyResolutionManagement {
     repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
     repositories {
@@ -13,6 +14,6 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "Projectivy Wallpaper Provider"
+rootProject.name = "projectivy-plugin-wallpaper-bingwallpaper"
+
 include(":bingwallpaper")
-include(":api")
