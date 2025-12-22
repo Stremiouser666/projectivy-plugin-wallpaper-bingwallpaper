@@ -12,38 +12,31 @@ import tv.projectivy.plugin.wallpaperprovider.api.WallpaperType
 
 class WallpaperProviderService : Service() {
 
-    override fun onCreate() {
-        super.onCreate()
-        PreferencesManager.init(this)
-    }
-
-    override fun onBind(intent: Intent): IBinder {
+    override fun onBind(intent: Intent?): IBinder {
         return binder
     }
 
     private val binder = object : IWallpaperProviderService.Stub() {
 
-        override fun getWallpapers(event: Event?): List<Wallpaper> {
-            val m3u8Url = PreferencesManager.wallpaperSourceUrl
+        override fun getWallpapers(): List<Wallpaper> {
 
-            if (m3u8Url.isNullOrBlank()) {
-                Log.w("WallpaperProvider", "No M3U8 URL configured")
-                return emptyList()
-            }
+            // 🔴 REPLACE THIS URL WITH YOUR M3U8 STREAM
+            val hlsUrl = "https://example.com/stream/playlist.m3u8"
 
-            Log.d("WallpaperProvider", "Providing M3U8 wallpaper: $m3u8Url")
+            Log.d("BingWallpaper", "Sending HLS wallpaper: $hlsUrl")
 
             return listOf(
                 Wallpaper(
-                    m3u8Url,
-                    WallpaperType.VIDEO,
-                    WallpaperDisplayMode.DEFAULT,
-                    "Live Wallpaper",
-                    m3u8Url,
-                    "M3U8 Stream"
+                    id = "hls-wallpaper-1",
+                    title = "Live HLS Wallpaper",
+                    url = hlsUrl,
+                    type = WallpaperType.VIDEO,   // MUST be VIDEO
+                    displayMode = WallpaperDisplayMode.FIT
                 )
             )
         }
+
+        override fun getEvents(): List<Event> = emptyList()
 
         override fun getPreferences(): String {
             return PreferencesManager.export()
@@ -54,4 +47,3 @@ class WallpaperProviderService : Service() {
         }
     }
 }
-
