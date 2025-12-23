@@ -13,5 +13,5 @@ android {
 }
 
 dependencies {
-    // Projectivy provides runtime APIs
+    // Projectivy API dependency (if used)
 }
