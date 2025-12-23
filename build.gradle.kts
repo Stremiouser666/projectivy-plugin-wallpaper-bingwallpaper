@@ -1,5 +1,5 @@
 plugins {
-    id("com.android.library")
+    id("com.android.library") version "8.12.2" apply false
     id("org.jetbrains.kotlin.android")
 }
 
