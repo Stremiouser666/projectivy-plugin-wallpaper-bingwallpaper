@@ -12,11 +12,6 @@ android {
     }
 }
 
-repositories {
-    google()
-    mavenCentral()
-}
-
 dependencies {
     implementation("com.google.android.exoplayer:exoplayer:2.20.0")
 }
