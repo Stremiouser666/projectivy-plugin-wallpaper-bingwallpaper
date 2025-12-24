@@ -9,10 +9,13 @@ android {
 
     defaultConfig {
         minSdk = 21
+        
+        buildConfigField("String", "VERSION_NAME", "\"1.0.0\"")
     }
     
     buildFeatures {
         buildConfig = true
+        aidl = true
     }
     
     compileOptions {
@@ -26,6 +29,9 @@ android {
 }
 
 dependencies {
+    // Projectivy API (need to add this - it's in your /api folder)
+    implementation(project(":api"))
+    
     // AndroidX Media3 (ExoPlayer)
     implementation("androidx.media3:media3-exoplayer:1.2.1")
     implementation("androidx.media3:media3-exoplayer-hls:1.2.1")
@@ -36,6 +42,9 @@ dependencies {
     implementation("androidx.leanback:leanback:1.0.0")
     implementation("androidx.leanback:leanback-preference:1.0.0")
     implementation("androidx.preference:preference-ktx:1.2.1")
+    
+    // Material Design (fixes colorPrimaryVariant error)
+    implementation("com.google.android.material:material:1.11.0")
     
     // Networking
     implementation("com.squareup.okhttp3:okhttp:4.12.0")
