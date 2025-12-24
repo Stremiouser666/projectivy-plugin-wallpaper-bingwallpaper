@@ -19,7 +19,7 @@ class WallpaperProviderService : Service() {
     private val binder = object : IWallpaperProviderService.Stub() {
 
         override fun getWallpapers(event: Event?): MutableList<Wallpaper> {
-            
+
             // Get the M3U8 URL from preferences or use default
             val hlsUrl = PreferencesManager.wallpaperSourceUrl 
                 ?: "https://example.com/stream/playlist.m3u8"
@@ -30,12 +30,13 @@ class WallpaperProviderService : Service() {
                 Wallpaper(
                     uri = hlsUrl,
                     type = WallpaperType.VIDEO,
-                    displayMode = WallpaperDisplayMode.FIT
+                    displayMode = WallpaperDisplayMode.CROP,
+                    title = "M3U8 Video Wallpaper"
                 )
             )
         }
 
-        override fun getEvents(): MutableList<Event> = mutableListOf()
+        override fun getEvents(): MutableList<Event>? = null
 
         override fun getPreferences(): String {
             return PreferencesManager.export()
