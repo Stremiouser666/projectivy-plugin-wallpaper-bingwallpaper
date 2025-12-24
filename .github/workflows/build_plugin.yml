@@ -22,8 +22,8 @@ jobs:
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
 
-      - name: Build AAR
-        run: ./gradlew :bingwallpaper:bundleReleaseAar
+      - name: Build APK
+        run: ./gradlew :bingwallpaper:bundleRelease
 
       - name: Upload AAR
         uses: actions/upload-artifact@v4
