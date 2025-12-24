@@ -1,6 +1,5 @@
 package tv.projectivy.plugin.wallpaperprovider.bingwallpaper
 
-
 import android.content.Context
 import android.net.TrafficStats
 import android.util.Log
@@ -11,8 +10,7 @@ import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.Response
 import java.io.IOException
-import kotlin.time.Duration.Companion.days
-import kotlin.time.Duration.Companion.seconds
+import java.util.concurrent.TimeUnit
 
 object NetClientManager {
 
@@ -24,7 +22,7 @@ object NetClientManager {
 
     private val cacheControl: CacheControl
         get() = CacheControl.Builder()
-            .maxAge(MAX_AGE_IN_DAYS.days)
+            .maxAge(MAX_AGE_IN_DAYS, TimeUnit.DAYS)
             .build()
 
     lateinit var httpClient: OkHttpClient
@@ -33,7 +31,7 @@ object NetClientManager {
         TrafficStats.setThreadStatsTag(1906)
         httpClient = OkHttpClient.Builder()
             .cache(Cache(context.cacheDir, CACHE_SIZE))
-            .callTimeout(CALL_TIMEOUT_IN_S.seconds)
+            .callTimeout(CALL_TIMEOUT_IN_S, TimeUnit.SECONDS)
             .addNetworkInterceptor(CacheInterceptor())
             .build()
     }
@@ -50,7 +48,7 @@ object NetClientManager {
         try {
             httpClient.newCall(request).execute().use { response ->
                 if (response.isSuccessful) {
-                    return response.body.string()
+                    return response.body?.string()
                 }
                 Log.d("NetClientManager", "Request unsuccessful. Response code:" + response.code)
             }
@@ -81,5 +79,4 @@ object NetClientManager {
                 .build()
         }
     }
-
 }
