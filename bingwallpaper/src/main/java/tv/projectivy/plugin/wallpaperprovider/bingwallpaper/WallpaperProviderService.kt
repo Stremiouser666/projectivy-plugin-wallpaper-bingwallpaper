@@ -36,8 +36,6 @@ class WallpaperProviderService : Service() {
             )
         }
 
-        override fun getEvents(): MutableList<Event>? = null
-
         override fun getPreferences(): String {
             return PreferencesManager.export()
         }
