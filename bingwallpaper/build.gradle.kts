@@ -39,6 +39,8 @@ dependencies {
     implementation("androidx.media3:media3-exoplayer:1.2.1")
     implementation("androidx.media3:media3-exoplayer-hls:1.2.1")
     implementation("androidx.media3:media3-ui:1.2.1")
+
+implementation("com.android.volley:volley:1.1.1")
     
     // AndroidX Core libraries
     implementation("androidx.appcompat:appcompat:1.6.1")
