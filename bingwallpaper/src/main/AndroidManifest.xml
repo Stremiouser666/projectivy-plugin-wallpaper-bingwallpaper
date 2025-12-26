@@ -6,7 +6,7 @@
     <application
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
-        android:label="@string/app_name"
+        android:label="@string/plugin_name"
         android:supportsRtl="true"
         android:theme="@style/Theme.AppCompat">
 
@@ -14,7 +14,7 @@
         <activity
             android:name=".SettingsActivity"
             android:exported="true"
-            android:label="@string/app_name"
+            android:label="@string/settings"
             android:theme="@style/Theme.AppCompat">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -32,7 +32,10 @@
             </intent-filter>
             <meta-data
                 android:name="tv.projectivy.plugin.wallpaperprovider.name"
-                android:value="@string/app_name" />
+                android:value="@string/plugin_short_name" />
+            <meta-data
+                android:name="tv.projectivy.plugin.wallpaperprovider.uuid"
+                android:value="@string/plugin_uuid" />
         </service>
 
     </application>
