@@ -5,7 +5,8 @@
 
     <application
         android:allowBackup="true"
-        android:icon="@mipmap/ic_launcher"
+        android:icon="@mipmap/ic_banner"
+        android:banner="@mipmap/ic_banner"
         android:label="@string/plugin_name"
         android:supportsRtl="true"
         android:theme="@style/Theme.AppCompat">
