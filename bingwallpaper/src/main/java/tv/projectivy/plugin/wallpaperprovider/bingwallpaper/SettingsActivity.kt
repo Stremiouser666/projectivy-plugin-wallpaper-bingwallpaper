@@ -3,6 +3,7 @@ package tv.projectivy.plugin.wallpaperprovider.bingwallpaper
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
+import android.util.Log
 import android.util.Patterns
 import android.widget.Button
 import android.widget.EditText
@@ -24,6 +25,7 @@ import org.json.JSONObject
 class SettingsActivity : AppCompatActivity() {
 
     companion object {
+        private const val TAG = "M3U8Settings"
         private const val TEST_TIMEOUT_MS = 10_000L
     }
 
@@ -39,7 +41,7 @@ class SettingsActivity : AppCompatActivity() {
         try {
             PreferencesManager.init(this)
         } catch (e: Exception) {
-            // PreferencesManager might not have init method
+            Log.e(TAG, "PreferencesManager init failed", e)
         }
         
         setContentView(R.layout.activity_settings)
@@ -48,7 +50,6 @@ class SettingsActivity : AppCompatActivity() {
         val testButton = findViewById<Button>(R.id.test_button)
         val saveButton = findViewById<Button>(R.id.save_button)
 
-        // Load saved URL
         try {
             urlInput.setText(PreferencesManager.wallpaperSourceUrl ?: "")
         } catch (e: Exception) {
@@ -66,7 +67,10 @@ class SettingsActivity : AppCompatActivity() {
                 toast("Extracting M3U8 from Rutube...")
                 extractRutubeM3U8(url) { m3u8Url ->
                     if (m3u8Url != null) {
-                        toast("Found M3U8! Testing...")
+                        Log.d(TAG, "Extracted M3U8: $m3u8Url")
+                        toast("Found M3U8! Testing...\n$m3u8Url")
+                        // Update the text field with the extracted URL so user can see it
+                        urlInput.setText(m3u8Url)
                         testStream(m3u8Url)
                     } else {
                         toast("❌ Failed to extract M3U8 from Rutube")
@@ -90,6 +94,7 @@ class SettingsActivity : AppCompatActivity() {
                 toast("Extracting and saving M3U8...")
                 extractRutubeM3U8(url) { m3u8Url ->
                     if (m3u8Url != null) {
+                        Log.d(TAG, "Saving extracted M3U8: $m3u8Url")
                         saveUrl(m3u8Url)
                     } else {
                         toast("❌ Failed to extract M3U8 from Rutube")
@@ -110,41 +115,69 @@ class SettingsActivity : AppCompatActivity() {
     private fun extractRutubeM3U8(rutubeUrl: String, callback: (String?) -> Unit) {
         CoroutineScope(Dispatchers.IO).launch {
             try {
-                // Extract video ID from URL
                 val videoId = extractVideoId(rutubeUrl)
+                Log.d(TAG, "Extracted video ID: $videoId")
+                
                 if (videoId == null) {
                     withContext(Dispatchers.Main) { callback(null) }
                     return@launch
                 }
 
-                // Fetch video info from Rutube API
                 val apiUrl = "https://rutube.ru/api/play/options/$videoId/?no_404=true&referer=https%3A%2F%2Frutube.ru"
-                val request = Request.Builder().url(apiUrl).build()
+                Log.d(TAG, "Calling API: $apiUrl")
+                
+                val request = Request.Builder()
+                    .url(apiUrl)
+                    .addHeader("Referer", "https://rutube.ru")
+                    .addHeader("User-Agent", "Mozilla/5.0")
+                    .build()
                 
                 val response = httpClient.newCall(request).execute()
                 val json = response.body?.string()
                 
+                Log.d(TAG, "API Response: ${json?.take(500)}")
+                
                 if (json != null) {
                     val jsonObject = JSONObject(json)
-                    val m3u8Url = jsonObject.optString("video_balancer")
-                        .ifEmpty { jsonObject.optJSONObject("video_balancer")?.optString("m3u8") }
+                    
+                    // Try multiple possible locations for the M3U8 URL
+                    var m3u8Url: String? = null
+                    
+                    // Method 1: Direct video_balancer field
+                    m3u8Url = jsonObject.optString("video_balancer").takeIf { it.isNotEmpty() }
+                    
+                    // Method 2: Inside video_balancer object
+                    if (m3u8Url.isNullOrEmpty()) {
+                        m3u8Url = jsonObject.optJSONObject("video_balancer")?.optString("m3u8")
+                    }
+                    
+                    // Method 3: Try m3u8 field directly
+                    if (m3u8Url.isNullOrEmpty()) {
+                        m3u8Url = jsonObject.optString("m3u8")
+                    }
+                    
+                    // Method 4: Look in hls field
+                    if (m3u8Url.isNullOrEmpty()) {
+                        m3u8Url = jsonObject.optString("hls")
+                    }
+                    
+                    Log.d(TAG, "Final M3U8 URL: $m3u8Url")
                     
                     withContext(Dispatchers.Main) {
                         callback(if (m3u8Url.isNullOrEmpty()) null else m3u8Url)
                     }
                 } else {
+                    Log.e(TAG, "Empty response from API")
                     withContext(Dispatchers.Main) { callback(null) }
                 }
             } catch (e: Exception) {
-                e.printStackTrace()
+                Log.e(TAG, "Error extracting M3U8", e)
                 withContext(Dispatchers.Main) { callback(null) }
             }
         }
     }
 
     private fun extractVideoId(url: String): String? {
-        // Extract video ID from URLs like:
-        // https://rutube.ru/video/2cc3a117b2de6ebadb9d2037b37deb05/
         val regex = "rutube\\.ru/video/([a-f0-9]+)".toRegex(RegexOption.IGNORE_CASE)
         return regex.find(url)?.groupValues?.get(1)
     }
@@ -193,7 +226,8 @@ class SettingsActivity : AppCompatActivity() {
                     override fun onPlayerError(error: PlaybackException) {
                         if (!testCompleted) {
                             testCompleted = true
-                            toast("❌ Stream failed: ${error.message}")
+                            Log.e(TAG, "Stream error", error)
+                            toast("❌ Stream failed: ${error.errorCodeName}\n${error.message}")
                             releaseTestPlayer()
                         }
                     }
@@ -213,6 +247,7 @@ class SettingsActivity : AppCompatActivity() {
             }
             handler.postDelayed(timeoutRunnable!!, TEST_TIMEOUT_MS)
         } catch (e: Exception) {
+            Log.e(TAG, "Error testing stream", e)
             toast("❌ Error testing stream: ${e.message}")
             testCompleted = true
             releaseTestPlayer()
