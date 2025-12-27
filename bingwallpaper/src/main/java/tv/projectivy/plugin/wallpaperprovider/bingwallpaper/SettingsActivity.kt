@@ -68,8 +68,8 @@ class SettingsActivity : AppCompatActivity() {
                 extractRutubeM3U8(url) { m3u8Url ->
                     if (m3u8Url != null) {
                         Log.d(TAG, "Extracted M3U8: $m3u8Url")
-                        toast("Found M3U8! Testing...\n$m3u8Url")
-                        // Update the text field with the extracted URL so user can see it
+                        toast("Found M3U8! Testing...")
+                        // Update the text field with the extracted URL
                         urlInput.setText(m3u8Url)
                         testStream(m3u8Url)
                     } else {
@@ -140,23 +140,36 @@ class SettingsActivity : AppCompatActivity() {
                 if (json != null) {
                     val jsonObject = JSONObject(json)
                     
-                    // Try multiple possible locations for the M3U8 URL
                     var m3u8Url: String? = null
                     
-                    // Method 1: Direct video_balancer field
-                    m3u8Url = jsonObject.optString("video_balancer").takeIf { it.isNotEmpty() }
+                    // Try to get video_balancer as string first
+                    val videoBalancer = jsonObject.optString("video_balancer")
                     
-                    // Method 2: Inside video_balancer object
-                    if (m3u8Url.isNullOrEmpty()) {
-                        m3u8Url = jsonObject.optJSONObject("video_balancer")?.optString("m3u8")
+                    if (videoBalancer.isNotEmpty() && videoBalancer.startsWith("{")) {
+                        // It's a JSON object string, parse it
+                        try {
+                            val balancerObj = JSONObject(videoBalancer)
+                            m3u8Url = balancerObj.optString("m3u8")
+                                .ifEmpty { balancerObj.optString("default") }
+                        } catch (e: Exception) {
+                            Log.e(TAG, "Failed to parse video_balancer as JSON", e)
+                        }
+                    } else if (videoBalancer.isNotEmpty()) {
+                        // It's already a URL string
+                        m3u8Url = videoBalancer
                     }
                     
-                    // Method 3: Try m3u8 field directly
+                    // Fallback: try video_balancer as object
+                    if (m3u8Url.isNullOrEmpty()) {
+                        val balancerObj = jsonObject.optJSONObject("video_balancer")
+                        m3u8Url = balancerObj?.optString("m3u8")
+                            ?: balancerObj?.optString("default")
+                    }
+                    
+                    // Additional fallbacks
                     if (m3u8Url.isNullOrEmpty()) {
                         m3u8Url = jsonObject.optString("m3u8")
                     }
-                    
-                    // Method 4: Look in hls field
                     if (m3u8Url.isNullOrEmpty()) {
                         m3u8Url = jsonObject.optString("hls")
                     }
