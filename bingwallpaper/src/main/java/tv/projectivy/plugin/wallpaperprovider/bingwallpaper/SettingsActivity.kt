@@ -13,6 +13,13 @@ import androidx.media3.common.MediaItem
 import androidx.media3.common.PlaybackException
 import androidx.media3.common.Player
 import androidx.media3.exoplayer.ExoPlayer
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import okhttp3.OkHttpClient
+import okhttp3.Request
+import org.json.JSONObject
 
 class SettingsActivity : AppCompatActivity() {
 
@@ -24,15 +31,15 @@ class SettingsActivity : AppCompatActivity() {
     private val handler = Handler(Looper.getMainLooper())
     private var timeoutRunnable: Runnable? = null
     private var testCompleted = false
+    private val httpClient = OkHttpClient()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         
-        // Initialize PreferencesManager first
         try {
             PreferencesManager.init(this)
         } catch (e: Exception) {
-            // PreferencesManager might not have init method, that's ok
+            // PreferencesManager might not have init method
         }
         
         setContentView(R.layout.activity_settings)
@@ -50,27 +57,105 @@ class SettingsActivity : AppCompatActivity() {
 
         testButton.setOnClickListener {
             val url = urlInput.text.toString().trim()
-            if (!isValidM3U8Url(url)) {
-                toast("Enter a valid M3U8 URL")
+            if (url.isBlank()) {
+                toast("Enter a URL")
                 return@setOnClickListener
             }
-            testStream(url)
+            
+            if (isRutubeUrl(url)) {
+                toast("Extracting M3U8 from Rutube...")
+                extractRutubeM3U8(url) { m3u8Url ->
+                    if (m3u8Url != null) {
+                        toast("Found M3U8! Testing...")
+                        testStream(m3u8Url)
+                    } else {
+                        toast("❌ Failed to extract M3U8 from Rutube")
+                    }
+                }
+            } else if (isValidM3U8Url(url)) {
+                testStream(url)
+            } else {
+                toast("Enter a valid Rutube or M3U8 URL")
+            }
         }
 
         saveButton.setOnClickListener {
             val url = urlInput.text.toString().trim()
-            if (!isValidM3U8Url(url)) {
-                toast("Invalid M3U8 URL")
+            if (url.isBlank()) {
+                toast("Enter a URL")
                 return@setOnClickListener
             }
 
-            try {
-                PreferencesManager.wallpaperSourceUrl = url
-                toast("M3U8 wallpaper source saved")
-                finish()
-            } catch (e: Exception) {
-                toast("Error saving: ${e.message}")
+            if (isRutubeUrl(url)) {
+                toast("Extracting and saving M3U8...")
+                extractRutubeM3U8(url) { m3u8Url ->
+                    if (m3u8Url != null) {
+                        saveUrl(m3u8Url)
+                    } else {
+                        toast("❌ Failed to extract M3U8 from Rutube")
+                    }
+                }
+            } else if (isValidM3U8Url(url)) {
+                saveUrl(url)
+            } else {
+                toast("Enter a valid Rutube or M3U8 URL")
             }
+        }
+    }
+
+    private fun isRutubeUrl(url: String): Boolean {
+        return url.contains("rutube.ru", ignoreCase = true)
+    }
+
+    private fun extractRutubeM3U8(rutubeUrl: String, callback: (String?) -> Unit) {
+        CoroutineScope(Dispatchers.IO).launch {
+            try {
+                // Extract video ID from URL
+                val videoId = extractVideoId(rutubeUrl)
+                if (videoId == null) {
+                    withContext(Dispatchers.Main) { callback(null) }
+                    return@launch
+                }
+
+                // Fetch video info from Rutube API
+                val apiUrl = "https://rutube.ru/api/play/options/$videoId/?no_404=true&referer=https%3A%2F%2Frutube.ru"
+                val request = Request.Builder().url(apiUrl).build()
+                
+                val response = httpClient.newCall(request).execute()
+                val json = response.body?.string()
+                
+                if (json != null) {
+                    val jsonObject = JSONObject(json)
+                    val m3u8Url = jsonObject.optString("video_balancer")
+                        .ifEmpty { jsonObject.optJSONObject("video_balancer")?.optString("m3u8") }
+                    
+                    withContext(Dispatchers.Main) {
+                        callback(if (m3u8Url.isNullOrEmpty()) null else m3u8Url)
+                    }
+                } else {
+                    withContext(Dispatchers.Main) { callback(null) }
+                }
+            } catch (e: Exception) {
+                e.printStackTrace()
+                withContext(Dispatchers.Main) { callback(null) }
+            }
+        }
+    }
+
+    private fun extractVideoId(url: String): String? {
+        // Extract video ID from URLs like:
+        // https://rutube.ru/video/2cc3a117b2de6ebadb9d2037b37deb05/
+        val regex = "rutube\\.ru/video/([a-f0-9]+)".toRegex(RegexOption.IGNORE_CASE)
+        return regex.find(url)?.groupValues?.get(1)
+    }
+
+    private fun saveUrl(url: String) {
+        try {
+            PreferencesManager.wallpaperSourceUrl = url
+            toast("✅ M3U8 wallpaper source saved")
+            finish()
+        } catch (e: Exception) {
+            toast("Error saving: ${e.message}")
         }
     }
 
@@ -119,7 +204,6 @@ class SettingsActivity : AppCompatActivity() {
                 play()
             }
 
-            // ⏱️ Timeout handling
             timeoutRunnable = Runnable {
                 if (!testCompleted) {
                     testCompleted = true
