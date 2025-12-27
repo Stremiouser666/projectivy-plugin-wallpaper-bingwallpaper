@@ -30,7 +30,7 @@
             android:enabled="true"
             android:exported="true">
             <intent-filter>
-                <action android:name="tv.projectivy.plugin.wallpaperprovider.WALLPAPER_PROVIDER" />
+                <action android:name="tv.projectivy.plugin.WALLPAPER_PROVIDER"/>
             </intent-filter>
             
             <!-- Required meta-data for Projectivy -->
