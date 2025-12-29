@@ -1,4 +1,4 @@
-# Projectivy Wallpaper Plugin : Bing Wallpaper
+# Projectivy Wallpaper Plugin : m3u8 Wallpaper
 
 Bing Photo of the Day as wallpaper for Projectivy Launcher.
 
