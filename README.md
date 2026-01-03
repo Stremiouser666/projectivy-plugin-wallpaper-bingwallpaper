@@ -1,12 +1,14 @@
 # Projectivy Wallpaper Plugin : m3u8 Wallpaper
 
-Bing Photo of the Day as wallpaper for Projectivy Launcher.
+Display m3u8 streams as a wallpaper for Projectivy Launcher.
 
 # Usage
 - Install the plugin to an Android Tv device with Projectivy Launcher installed
-- Go to Projectivy settings > Appearance > Wallpaper and choose "Bing Wallpaper" in the dropdown list
+- Go to Projectivy settings > Appearance > Wallpaper and choose "m3u8 Wallpaper" in the dropdown list
 
 # Note
-This plugin is provided as is, and is not affiliated with Bing or Microsoft
-If you're a developer and want to create your own wallpaper plugin, check [the sample project](https://github.com/spocky/projectivy-plugin-wallpaper-provider) or use this repository as a base.
-Found a bug or want to update the video links ? PR are welcome.
+This plugin is provided as is, and is does not supply or include any m3u8 URLs other than the test URL provided.
+If you're a developer and want to create your own wallpaper plugin, check [If you're a develo](https://github.com/spocky/projectivy-plugin-wallpaper-provider).
+
+This project was forked from Spocky's Bing Wallpaper provider please give it a try.
+(https://github.com/spocky/projectivy-plugin-wallpaper-bingwallpaper) all credit to Spocky for the base and starting point of my project.
